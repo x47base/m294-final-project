@@ -1,80 +1,186 @@
-var tasks = [];
+var tasks;
 
-function renderTasks(){
-    document.querySelectorAll('.task').forEach(element => element.remove())
+async function renderTasks(){
+    document.querySelectorAll('.task').forEach(element => element.remove());
 
-    for(let task of tasks){
-        let newTask = document.createElement('div')
-        newTask.classList.add('task')
+    try {
+        const response = await fetch('http://localhost/tasks', {
+            method: "GET"
+        });
 
-        let newP = document.createElement('p')
-        newP.innerText = task.task
-        
-        let checkBox = document.createElement('input')
-        checkBox.setAttribute('type','checkbox')
+        if (!response.ok) {
+            throw new Error(`HTTP Error! Status: ${response.status}`);
+        }
 
-        checkBox.addEventListener('change', (event) => {
+        const tasks = await response.json(); // Parse the JSON response
 
-        })
+        for (let i = 0; i < tasks.length; i++) {
+            let task = tasks[i];
+            let newTask = document.createElement('div');
+            newTask.classList.add('task');
 
-        let btnDiv = document.createElement('div')
-        btnDiv.classList.add('button-container')
+            let newP = document.createElement('p');
+            newP.innerText = task.title;
 
-        let editBtn = document.createElement('button')
-        editBtn.innerText = 'Edit'
-        
-        let removeBtn = document.createElement('button')
-        removeBtn.innerText = 'Remove'
+            let checkBox = document.createElement('input');
+            checkBox.setAttribute('type', 'checkbox');
 
-        editBtn.addEventListener('click', () => {
-            let edit = prompt("Edit Task", task.task)
-            editTask(task, edit)
-        })
-        
-        removeBtn.addEventListener('click', () => {
-            deleteTask(task)
-        })
+            checkBox.addEventListener('change', (event) => {
+                // Handle checkbox change
+            });
 
-        newTask.appendChild(newP)
-        newTask.appendChild(checkBox)
+            let btnDiv = document.createElement('div');
+            btnDiv.classList.add('button-container');
 
-        btnDiv.appendChild(editBtn)
-        btnDiv.appendChild(removeBtn)
-        
-        newTask.appendChild(btnDiv)
+            let editBtn = document.createElement('button');
+            editBtn.innerText = 'Edit';
 
-        document.getElementById('task-container').appendChild(newTask)
+            let removeBtn = document.createElement('button');
+            removeBtn.innerText = 'Remove';
+
+            editBtn.addEventListener('click', () => {
+                let edit = prompt("Edit Task", task.task);
+                editTask(task, edit);
+            });
+
+            removeBtn.addEventListener('click', () => {
+                deleteTask(task);
+            });
+
+            newTask.appendChild(newP);
+            newTask.appendChild(checkBox);
+
+            btnDiv.appendChild(editBtn);
+            btnDiv.appendChild(removeBtn);
+
+            newTask.appendChild(btnDiv);
+
+            document.getElementById('task-container').appendChild(newTask);
+        }
+    } catch (error) {
+        console.error('Error:', error);
     }
 }
 
-function toggleTask(todo, done){
-    tasks.indexOf[todo].done = done
+async function toggleTask(todo, completed){
+    document.querySelectorAll('.task').forEach(element => element.remove())
+    await fetch('http://localhost/tasks',{
+        method: "GET"
+    }).then(res => {
+        tasks = Array.from(res.json())
+    })
+
+    tasks.indexOf[todo].completed = completed
     renderTasks()
 }
 
-function editTask(task, edit){
-    tasks[tasks.indexOf(task)].task = edit;
+async function editTask(task, edit){
+    task.title = edit;
+
+    try {
+        const response = await fetch('http://localhost/tasks', {
+            method: "PUT",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(task)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP Error! Status: ${response.status}`);
+        }
+
+        const tasks = await response.json(); // Parse the JSON response
+        renderTasks()
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+async function deleteTask(task){
+    const response = await fetch('http://localhost/tasks', {
+        method: "GET"
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP Error! Status: ${response.status}`);
+    }
+
+    let tasks = await response.json();
+    tasks = tasks.filter((t) => t !== task)
+    
+    try {
+        const response = await fetch(`http://localhost/task/${task.id}`, {
+            method: "DELETE"
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP Error! Status: ${response.status}`);
+        }
+
+        renderTasks()
+    } catch (error) {
+        console.error('Error:', error);
+    }
+
     renderTasks()
 }
 
-function deleteTask(task){
-    tasks = tasks.filter((t) => t!== task)
-    renderTasks()
+
+async function handleLogin(user){
+    await fetch('http://localhost/auth/cookie/login', {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(user)
+    }).then(res => {
+        if(res.ok){
+            alert('successfully logged in')
+        } else {
+            let info = res.json()
+            console.log(info)
+            alert(info.message)
+        }
+    })
 }
 
 document.addEventListener('DOMContentLoaded', function(){
 
-    document.forms.createTask.addEventListener('submit', (event) => {
+    renderTasks()
+
+    document.forms.createTask.addEventListener('submit', async (event) => {
         event.preventDefault();
     
         const data = new FormData(event.target)
         
+        const response = await fetch('http://localhost/tasks', {
+            method: "GET"
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP Error! Status: ${response.status}`);
+        }
+
+        const tasks = await response.json(); // Parse the JSON response
+
         let a = data.get('nextask');
 
-        let task = { task: a, done: false }
-        tasks.push(task)
+        let task = { id: tasks.length, title: a, completed: false }
 
-        renderTasks()
+        await fetch('http://localhost/tasks',{
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(task)
+        }).then(res => {
+            if (!res.ok) {
+                throw new Error(`HTTP Error! Status: ${response.status}`);
+            }
+
+            renderTasks()
+        })
     })
 
     document.getElementById('epileptic').addEventListener('input', (event) => {
@@ -86,6 +192,11 @@ document.addEventListener('DOMContentLoaded', function(){
         }
     }) // TODO: FIX
 
-
+    document.forms.login.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const data = new FormData(event.target);
+        let user = { email: data.get('l-email'), password: data.get('l-password') }
+        handleLogin(user)
+    })
     
-})
+});

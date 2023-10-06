@@ -1,0 +1,76 @@
+:root {
+    /* Colors */
+    --color-background: #f1f1f1;
+}
+
+/* Main */
+
+body {
+    background-color: var(--color-background);
+    min-height: 100%;
+}
+
+.epileptic {
+    animation: anim 2s infinite;
+}
+
+@keyframes anim {
+    0%{background-color: red;}
+    10%{background-color: purple;}
+    20%{background-color: green;}
+    30%{background-color: white;}
+    40%{background-color: black;}
+    50%{background-color: yellow;}
+    60%{background-color: blue;}
+    70%{background-color: pink;}
+    80%{background-color: maroon;}
+    90%{background-color: white;}
+    100%{background-color: black;}
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Button Container */
+
+.button-container {
+    display: flex;
+    flex-direction: row;
+}
+
+/* Form Container */
+
+.form-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-container form {
+    display: flex;
+    flex-direction: column;
+    width: fit-content;
+    gap: .375rem;
+}
+
+.form-container form .input-container {
+    display: flex;
+    flex-direction: row;
+    gap: .25rem;
+}
+
+/* Task Container */
+
+#task-container {
+    margin-top: .5rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+
+#task-container .task {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+}
